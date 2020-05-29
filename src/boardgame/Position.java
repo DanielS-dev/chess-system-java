@@ -16,16 +16,16 @@ public class Position {
 	public void setRow(int row) {
 		this.row = row;
 	}
-	public int getColumm() {
+	public int getColumn() {
 		return column;
 	}
-	public void setColumm(int column) {
+	public void setColumn(int column) {
 		this.column = column;
 	}
 	
 	@Override
 	public String toString() {
-		return row + ", " + column;
+		return getRow() + ", " + getColumn();
 	}
 	
 }
