@@ -100,18 +100,28 @@ public class ChessMatch {
 		}
 
 		// #Specialmove castling kingside rook
-		if (p instanceof King && target.getColumn() == source.getColumn() + 2) {
+		if (p instanceof King && target.getColumn() == source.getColumn() + 2 ) {
 			Position sourceT = new Position(source.getRow(), source.getColumn() + 3);
 			Position targetT = new Position(source.getRow(), source.getColumn() + 1);
 			ChessPiece rook = (ChessPiece) board.removePiece(sourceT);
 			board.placePiece(rook, targetT);
 			rook.increaseMoveCount();
-		} else if (p instanceof King && target.getColumn() == source.getColumn() - 2) {
+			
+			if (!testCanCastling(p.getColor(), p.getChessPosition().toPosition())) {
+				undoMove(source, target, capturedPiece);
+				throw new ChessException("No house where the King will pass can be the target of an opposing piece");
+			}
+		} else if (p instanceof King && target.getColumn() == source.getColumn() - 2 ) {
 			Position sourceT = new Position(source.getRow(), source.getColumn() - 4);
 			Position targetT = new Position(source.getRow(), source.getColumn() - 1);
 			ChessPiece rook = (ChessPiece) board.removePiece(sourceT);
 			board.placePiece(rook, targetT);
 			rook.increaseMoveCount();
+			
+			if (!testCanCastling(p.getColor(), p.getChessPosition().toPosition())) {
+				undoMove(source, target, capturedPiece);
+				throw new ChessException("No house where the King will pass can be the target of an opposing piece");
+			}
 		}
 
 		return capturedPiece;
@@ -129,13 +139,13 @@ public class ChessMatch {
 		}
 
 		// #Specialmove castling kingside rook
-		if (p instanceof King && target.getColumn() == source.getColumn() + 2) {
+		if (p instanceof King && target.getColumn() == source.getColumn() + 2 ) {
 			Position sourceT = new Position(source.getRow(), source.getColumn() + 3);
 			Position targetT = new Position(source.getRow(), source.getColumn() + 1);
 			ChessPiece rook = (ChessPiece) board.removePiece(targetT);
 			board.placePiece(rook, sourceT);
 			rook.decreaseMoveCount();;
-		} else if (p instanceof King && target.getColumn() == source.getColumn() - 2) {
+		} else if (p instanceof King && target.getColumn() == source.getColumn() - 2 ) {
 			Position sourceT = new Position(source.getRow(), source.getColumn() - 4);
 			Position targetT = new Position(source.getRow(), source.getColumn() - 1);
 			ChessPiece rook = (ChessPiece) board.removePiece(targetT);
@@ -172,8 +182,6 @@ public class ChessMatch {
 	}
 
 	private ChessPiece king(Color color) {
-		// List<Piece> list = pieceOnTheBoard.stream().filter(x ->
-		// ((ChessPiece)x).getColor() == color).collect(Collectors.toList());
 
 		for (Piece p : pieceOnTheBoard) {
 			if (p instanceof King && ((ChessPiece) p).getColor() == color) {
@@ -184,6 +192,22 @@ public class ChessMatch {
 		throw new IllegalStateException("There is no " + color + " king on the board");
 	}
 
+	private boolean testCanCastling(Color color, Position position) {
+		List<Piece> opponentPieces = pieceOnTheBoard.stream().filter(x -> ((ChessPiece)x).getColor() == opponent(color)).collect(Collectors.toList());
+		
+		for (Piece p : opponentPieces) {
+			boolean[][] mat = p.possibleMoves();
+			if (mat[position.getRow()][position.getColumn() + 1] == true) {
+				return false;
+			}
+			else if (mat[position.getRow()][position.getColumn() - 1] == true || mat[position.getRow()][position.getColumn() - 2] == true) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	private boolean testCheck(Color color) {
 		Position kingPosition = king(color).getChessPosition().toPosition();
 		List<Piece> opponentPieces = pieceOnTheBoard.stream()
